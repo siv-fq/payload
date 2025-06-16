@@ -1,5 +1,17 @@
 import type { CollectionConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import axios from 'axios'
+import { Access } from 'payload'
+import { HeroBlock } from './Block'
+
+const isAdmin: Access = ({ req: { user } }) => {
+  return user?.role === 'admin'
+}
+
+const isEditorOrAdmin: Access = ({ req: { user } }) => {
+  const role = user?.role ?? ''
+  return role === 'admin' || role === 'editor'
+}
 
 export const Blog: CollectionConfig = {
   slug: 'blog',
@@ -13,6 +25,9 @@ export const Blog: CollectionConfig = {
     },
   },
   access: {
+    create: isEditorOrAdmin,
+    update: isEditorOrAdmin,
+    delete: isAdmin,
     read: () => true,
   },
   fields: [
@@ -42,5 +57,24 @@ export const Blog: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
     },
+    {
+      name: 'blocks',
+      type: 'blocks',
+      blocks: [HeroBlock],
+    },
   ],
+  hooks: {
+    afterChange: [
+      async ({ doc }) => {
+        try {
+          await axios.post('http://localhost:3001/api/payload-revalidate', {
+            entry: { slug: doc.slug },
+          })
+          console.log(`Successfully revalidated slug: ${doc.slug}`)
+        } catch (err) {
+          console.error('Error revalidating:', err)
+        }
+      },
+    ],
+  },
 }

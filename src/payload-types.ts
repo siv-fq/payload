@@ -121,6 +121,7 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  role: 'admin' | 'editor' | 'author' | 'viewer';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -176,6 +177,16 @@ export interface Blog {
   };
   publishedDate?: string | null;
   featuredImage?: (number | null) | Media;
+  blocks?:
+    | {
+        headline: string;
+        subheadline?: string | null;
+        backgroundImage?: (number | null) | Media;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'hero';
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -245,6 +256,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -283,6 +295,19 @@ export interface BlogSelect<T extends boolean = true> {
   content?: T;
   publishedDate?: T;
   featuredImage?: T;
+  blocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              headline?: T;
+              subheadline?: T;
+              backgroundImage?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
 }
